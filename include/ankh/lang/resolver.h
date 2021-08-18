@@ -5,12 +5,17 @@
 
 namespace ankh::lang {
 
+class Interpreter;
+
 class Resolver
     : public ExpressionVisitor<void>
     , public StatementVisitor<void>
 {
 public:
+    Resolver(Interpreter *interpreter);
 
+private:
+    Interpreter *interpreter_;
 
 private:
     void visit(BinaryExpression *expr) override;

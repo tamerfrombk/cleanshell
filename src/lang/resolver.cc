@@ -2,6 +2,11 @@
 
 #include <ankh/def.h>
 
+#include <ankh/lang/interpreter.h>
+
+ankh::lang::Resolver::Resolver(Interpreter *interpreter)
+    : interpreter_(interpreter) {}
+
 void ankh::lang::Resolver::visit(BinaryExpression *expr)
 {
     ANKH_UNUSED(expr);
