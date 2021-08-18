@@ -61,8 +61,13 @@ private:
     void resolve(const StatementPtr& stmt);
     void resolve(const std::vector<StatementPtr>& stmts);
 
+    void declare(const Token& name) noexcept;
+    void define(const Token& name) noexcept;
+
     void begin_scope() noexcept;
     void end_scope() noexcept;
+
+    Scope& top() noexcept;
 };
 
 }

@@ -110,7 +110,9 @@ void ankh::lang::Resolver::visit(ExpressionStatement *stmt)
 
 void ankh::lang::Resolver::visit(VariableDeclaration *stmt)
 {
-    ANKH_UNUSED(stmt);
+    declare(stmt->name);
+    resolve(stmt->initializer);
+    define(stmt->name);
 }
 
 void ankh::lang::Resolver::visit(AssignmentStatement *stmt)
@@ -202,6 +204,24 @@ void ankh::lang::Resolver::resolve(const std::vector<StatementPtr>& stmts)
     }
 }
 
+void ankh::lang::Resolver::declare(const Token& name) noexcept
+{
+    if (scopes_.empty()) {
+        return;
+    }
+
+    top()[name.str] = false;
+}
+
+void ankh::lang::Resolver::define(const Token& name) noexcept
+{
+    if (scopes_.empty()) {
+        return;
+    }
+
+    top()[name.str] = true;
+}
+
 void ankh::lang::Resolver::begin_scope() noexcept
 {
     scopes_.push_back({});
@@ -212,3 +232,7 @@ void ankh::lang::Resolver::end_scope() noexcept
     scopes_.pop_back();
 }
 
+ankh::lang::Resolver::Scope& ankh::lang::Resolver::top() noexcept
+{
+    return scopes_.back();
+}
