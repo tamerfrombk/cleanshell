@@ -39,6 +39,8 @@ public:
         return functions_;
     }
 
+    void resolve(const Expression *expr, size_t hops);
+
 private:
     virtual ExprResult visit(BinaryExpression *expr) override;
     virtual ExprResult visit(UnaryExpression *expr) override;

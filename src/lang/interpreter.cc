@@ -235,6 +235,14 @@ void ankh::lang::Interpreter::interpret(const Program& program)
     }
 }
 
+void ankh::lang::Interpreter::resolve(const Expression *expr, size_t hops)
+{
+    ANKH_UNUSED(expr);
+    ANKH_UNUSED(hops);
+
+    ANKH_FATAL("unimplemented");
+}
+
 ankh::lang::ExprResult ankh::lang::Interpreter::visit(BinaryExpression *expr)
 {
     const ExprResult left  = evaluate(expr->left);

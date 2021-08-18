@@ -60,9 +60,11 @@ private:
     void resolve(const ExpressionPtr& expr);
     void resolve(const StatementPtr& stmt);
     void resolve(const std::vector<StatementPtr>& stmts);
+    void resolve(const Expression* expr, const Token& name);
 
     void declare(const Token& name) noexcept;
     void define(const Token& name) noexcept;
+    bool is_defined(const Token& name) noexcept;
 
     void begin_scope() noexcept;
     void end_scope() noexcept;

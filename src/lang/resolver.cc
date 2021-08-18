@@ -2,6 +2,7 @@
 
 #include <ankh/def.h>
 
+#include <ankh/lang/exceptions.h>
 #include <ankh/lang/interpreter.h>
 
 ankh::lang::Resolver::Resolver(Interpreter *interpreter)
@@ -37,7 +38,11 @@ ankh::lang::ExprResult ankh::lang::Resolver::visit(ParenExpression *expr)
 
 ankh::lang::ExprResult ankh::lang::Resolver::visit(IdentifierExpression *expr)
 {
-    ANKH_UNUSED(expr);
+    if (!scopes_.empty() && !is_defined(expr->name)) {
+        lang::panic<ParseException>("{}:{}, a local variable cannot be initialized with a global variable of the same name", expr->name.line, expr->name.col);
+    }
+
+    resolve(expr, expr->name);
 
     return {};
 }
@@ -204,6 +209,21 @@ void ankh::lang::Resolver::resolve(const std::vector<StatementPtr>& stmts)
     }
 }
 
+void ankh::lang::Resolver::resolve(const Expression *expr, const Token& name)
+{
+    if (scopes_.empty()) {
+        return;
+    }
+
+    for (auto it = scopes_.crbegin(); it != scopes_.crend(); ++it) {
+        if (it->count(name.str) > 0) {
+            const size_t hops = it - scopes_.crbegin();
+            interpreter_->resolve(expr, scopes_.size() - 1 - hops);
+            return;
+        }
+    }
+}
+
 void ankh::lang::Resolver::declare(const Token& name) noexcept
 {
     if (scopes_.empty()) {
@@ -220,6 +240,11 @@ void ankh::lang::Resolver::define(const Token& name) noexcept
     }
 
     top()[name.str] = true;
+}
+
+bool ankh::lang::Resolver::is_defined(const Token& name) noexcept
+{
+    return top().count(name.str) > 0 && top()[name.str] == true;
 }
 
 void ankh::lang::Resolver::begin_scope() noexcept
