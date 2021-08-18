@@ -145,7 +145,9 @@ void ankh::lang::Resolver::visit(CompoundModify* stmt)
 
 void ankh::lang::Resolver::visit(BlockStatement *stmt)
 {
-    ANKH_UNUSED(stmt);
+    begin_scope();
+    resolve(stmt->statements);
+    end_scope();
 }
 
 void ankh::lang::Resolver::visit(IfStatement *stmt)
@@ -192,3 +194,21 @@ void ankh::lang::Resolver::resolve(const StatementPtr& stmt)
 {
     stmt->accept(this);
 }
+
+void ankh::lang::Resolver::resolve(const std::vector<StatementPtr>& stmts)
+{
+    for (const auto& stmt : stmts) {
+        resolve(stmt);
+    }
+}
+
+void ankh::lang::Resolver::begin_scope() noexcept
+{
+    scopes_.push_back({});
+}
+
+void ankh::lang::Resolver::end_scope() noexcept
+{
+    scopes_.pop_back();
+}
+

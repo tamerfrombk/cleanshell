@@ -1,5 +1,9 @@
 #pragma once
 
+#include <vector>
+#include <unordered_map>
+#include <string>
+
 #include <ankh/lang/expr.h>
 #include <ankh/lang/statement.h>
 
@@ -11,11 +15,14 @@ class Resolver
     : public ExpressionVisitor
     , public StatementVisitor<void>
 {
+    using Scope = std::unordered_map<std::string, bool>;
+
 public:
     Resolver(Interpreter *interpreter);
 
 private:
     Interpreter *interpreter_;
+    std::vector<Scope> scopes_;
 
 private:
     ExprResult visit(BinaryExpression *expr) override;
@@ -52,6 +59,10 @@ private:
 
     void resolve(const ExpressionPtr& expr);
     void resolve(const StatementPtr& stmt);
+    void resolve(const std::vector<StatementPtr>& stmts);
+
+    void begin_scope() noexcept;
+    void end_scope() noexcept;
 };
 
 }
