@@ -49,6 +49,9 @@ private:
     void visit(FunctionDeclaration *stmt) override;
     void visit(ReturnStatement *stmt) override;
     void visit(DataDeclaration *stmt) override;
+
+    void resolve(const ExpressionPtr& expr);
+    void resolve(const StatementPtr& stmt);
 };
 
 }

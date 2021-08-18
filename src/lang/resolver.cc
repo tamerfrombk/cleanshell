@@ -156,3 +156,13 @@ void ankh::lang::Resolver::visit(DataDeclaration *stmt)
 {
     ANKH_UNUSED(stmt);
 }
+
+void ankh::lang::Resolver::resolve(const ExpressionPtr& expr)
+{
+    expr->accept(this);
+}
+
+void ankh::lang::Resolver::resolve(const StatementPtr& stmt)
+{
+    stmt->accept(this);
+}
