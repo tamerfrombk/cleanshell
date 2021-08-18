@@ -16,7 +16,7 @@
 namespace ankh::lang {
 
 class Interpreter
-    : public ExpressionVisitor<ExprResult>
+    : public ExpressionVisitor
     , public StatementVisitor<void>
 {
 public:

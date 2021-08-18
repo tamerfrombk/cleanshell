@@ -7,69 +7,95 @@
 ankh::lang::Resolver::Resolver(Interpreter *interpreter)
     : interpreter_(interpreter) {}
 
-void ankh::lang::Resolver::visit(BinaryExpression *expr)
+ankh::lang::ExprResult ankh::lang::Resolver::visit(BinaryExpression *expr)
 {
     ANKH_UNUSED(expr);
+
+    return {};
 }
 
-void ankh::lang::Resolver::visit(UnaryExpression *expr)
+ankh::lang::ExprResult ankh::lang::Resolver::visit(UnaryExpression *expr)
 {
     ANKH_UNUSED(expr);
+
+    return {};
 }
 
-void ankh::lang::Resolver::visit(LiteralExpression *expr)
+ankh::lang::ExprResult ankh::lang::Resolver::visit(LiteralExpression *expr)
 {
     ANKH_UNUSED(expr);
+
+    return {};
 }
 
-void ankh::lang::Resolver::visit(ParenExpression *expr)
+ankh::lang::ExprResult ankh::lang::Resolver::visit(ParenExpression *expr)
 {
     ANKH_UNUSED(expr);
+
+    return {};
 }
 
-void ankh::lang::Resolver::visit(IdentifierExpression *expr)
+ankh::lang::ExprResult ankh::lang::Resolver::visit(IdentifierExpression *expr)
 {
     ANKH_UNUSED(expr);
+
+    return {};
 }
 
-void ankh::lang::Resolver::visit(CallExpression *expr)
+ankh::lang::ExprResult ankh::lang::Resolver::visit(CallExpression *expr)
 {
     ANKH_UNUSED(expr);
+
+    return {};
 }
 
-void ankh::lang::Resolver::visit(LambdaExpression *expr)
+ankh::lang::ExprResult ankh::lang::Resolver::visit(LambdaExpression *expr)
 {
     ANKH_UNUSED(expr);
+
+    return {};
 }
 
-void ankh::lang::Resolver::visit(CommandExpression *expr)
+ankh::lang::ExprResult ankh::lang::Resolver::visit(CommandExpression *expr)
 {
     ANKH_UNUSED(expr);
+
+    return {};
 }
 
-void ankh::lang::Resolver::visit(ArrayExpression *expr)
+ankh::lang::ExprResult ankh::lang::Resolver::visit(ArrayExpression *expr)
 {
     ANKH_UNUSED(expr);
+
+    return {};
 }
 
-void ankh::lang::Resolver::visit(IndexExpression *expr)
+ankh::lang::ExprResult ankh::lang::Resolver::visit(IndexExpression *expr)
 {
     ANKH_UNUSED(expr);
+
+    return {};
 }
 
-void ankh::lang::Resolver::visit(DictionaryExpression *expr)
+ankh::lang::ExprResult ankh::lang::Resolver::visit(DictionaryExpression *expr)
 {
     ANKH_UNUSED(expr);
+
+    return {};
 }
 
-void ankh::lang::Resolver::visit(StringExpression *expr)
+ankh::lang::ExprResult ankh::lang::Resolver::visit(StringExpression *expr)
 {
     ANKH_UNUSED(expr);
+
+    return {};
 }
 
-void ankh::lang::Resolver::visit(AccessExpression *expr)
+ankh::lang::ExprResult ankh::lang::Resolver::visit(AccessExpression *expr)
 {
     ANKH_UNUSED(expr);
+
+    return {};
 }
 
 void ankh::lang::Resolver::visit(PrintStatement *stmt)

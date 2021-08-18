@@ -19,7 +19,7 @@ struct LambdaExpression
     LambdaExpression(std::string generated_name, std::vector<Token> params, StatementPtr body)
         : generated_name(std::move(generated_name)), params(std::move(params)), body(std::move(body)) {}
 
-    virtual ExprResult accept(ExpressionVisitor<ExprResult> *visitor) override
+    virtual ExprResult accept(ExpressionVisitor*visitor) override
     {
         return visitor->visit(this);
     }

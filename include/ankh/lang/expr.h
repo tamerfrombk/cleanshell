@@ -25,24 +25,22 @@ struct DictionaryExpression;
 struct StringExpression;
 struct AccessExpression;
 
-
-template <class R>
 struct ExpressionVisitor {
     virtual ~ExpressionVisitor() = default;
 
-    virtual R visit(BinaryExpression *expr) = 0;
-    virtual R visit(UnaryExpression *expr) = 0;
-    virtual R visit(LiteralExpression *expr) = 0;
-    virtual R visit(ParenExpression *expr) = 0;
-    virtual R visit(IdentifierExpression *expr) = 0;
-    virtual R visit(CallExpression *expr) = 0;
-    virtual R visit(LambdaExpression *expr) = 0;
-    virtual R visit(CommandExpression *expr) = 0;
-    virtual R visit(ArrayExpression *expr) = 0;
-    virtual R visit(IndexExpression *expr) = 0;
-    virtual R visit(DictionaryExpression *expr) = 0;
-    virtual R visit(StringExpression *expr) = 0;
-    virtual R visit(AccessExpression *expr) = 0;
+    virtual ExprResult visit(BinaryExpression *expr) = 0;
+    virtual ExprResult visit(UnaryExpression *expr) = 0;
+    virtual ExprResult visit(LiteralExpression *expr) = 0;
+    virtual ExprResult visit(ParenExpression *expr) = 0;
+    virtual ExprResult visit(IdentifierExpression *expr) = 0;
+    virtual ExprResult visit(CallExpression *expr) = 0;
+    virtual ExprResult visit(LambdaExpression *expr) = 0;
+    virtual ExprResult visit(CommandExpression *expr) = 0;
+    virtual ExprResult visit(ArrayExpression *expr) = 0;
+    virtual ExprResult visit(IndexExpression *expr) = 0;
+    virtual ExprResult visit(DictionaryExpression *expr) = 0;
+    virtual ExprResult visit(StringExpression *expr) = 0;
+    virtual ExprResult visit(AccessExpression *expr) = 0;
 };
 
 struct Expression;
@@ -51,7 +49,7 @@ using ExpressionPtr = std::unique_ptr<Expression>;
 struct Expression {
     virtual ~Expression() = default;
 
-    virtual ExprResult    accept(ExpressionVisitor<ExprResult> *visitor) = 0;
+    virtual ExprResult    accept(ExpressionVisitor *visitor) = 0;
     virtual ExpressionPtr clone() const noexcept = 0;
     virtual std::string stringify() const noexcept = 0;
 };
@@ -87,7 +85,7 @@ struct BinaryExpression
     BinaryExpression(ExpressionPtr left, Token op, ExpressionPtr right)
         : left(std::move(left)), op(std::move(op)), right(std::move(right)) {}
 
-    virtual ExprResult accept(ExpressionVisitor<ExprResult> *visitor) override
+    virtual ExprResult accept(ExpressionVisitor *visitor) override
     {
         return visitor->visit(this);
     }
@@ -112,7 +110,7 @@ struct UnaryExpression
     UnaryExpression(Token op, ExpressionPtr right)
         : op(std::move(op)), right(std::move(right)) {}
     
-    virtual ExprResult accept(ExpressionVisitor<ExprResult> *visitor) override
+    virtual ExprResult accept(ExpressionVisitor *visitor) override
     {
         return visitor->visit(this);
     }
@@ -136,7 +134,7 @@ struct LiteralExpression
     LiteralExpression(Token literal)
         : literal(std::move(literal)) {}
 
-    virtual ExprResult accept(ExpressionVisitor<ExprResult> *visitor) override
+    virtual ExprResult accept(ExpressionVisitor *visitor) override
     {
         return visitor->visit(this);
     }
@@ -160,7 +158,7 @@ struct StringExpression
     StringExpression(Token str)
         : str(std::move(str)) {}
 
-    virtual ExprResult accept(ExpressionVisitor<ExprResult> *visitor) override
+    virtual ExprResult accept(ExpressionVisitor *visitor) override
     {
         return visitor->visit(this);
     }
@@ -184,7 +182,7 @@ struct ParenExpression
     ParenExpression(ExpressionPtr expr)
         : expr(std::move(expr)) {}
 
-    virtual ExprResult accept(ExpressionVisitor<ExprResult> *visitor) override
+    virtual ExprResult accept(ExpressionVisitor *visitor) override
     {
         return visitor->visit(this);
     }
@@ -208,7 +206,7 @@ struct IdentifierExpression
     IdentifierExpression(Token name)
         : name(std::move(name)) {}
 
-    virtual ExprResult accept(ExpressionVisitor<ExprResult> *visitor) override
+    virtual ExprResult accept(ExpressionVisitor *visitor) override
     {
         return visitor->visit(this);
     }
@@ -233,7 +231,7 @@ struct CallExpression
     CallExpression(ExpressionPtr callee, std::vector<ExpressionPtr> args)
         : callee(std::move(callee)), args(std::move(args)) {}
 
-    virtual ExprResult accept(ExpressionVisitor<ExprResult> *visitor) override
+    virtual ExprResult accept(ExpressionVisitor *visitor) override
     {
         return visitor->visit(this);
     }
@@ -264,7 +262,7 @@ struct CommandExpression
     CommandExpression(Token cmd)
         : cmd(std::move(cmd)) {}
 
-    virtual ExprResult accept(ExpressionVisitor<ExprResult> *visitor) override
+    virtual ExprResult accept(ExpressionVisitor *visitor) override
     {
         return visitor->visit(this);
     }
@@ -288,7 +286,7 @@ struct ArrayExpression
     ArrayExpression(std::vector<ExpressionPtr> elems)
         : elems(std::move(elems)) {}
 
-    virtual ExprResult accept(ExpressionVisitor<ExprResult> *visitor) override
+    virtual ExprResult accept(ExpressionVisitor *visitor) override
     {
         return visitor->visit(this);
     }
@@ -325,7 +323,7 @@ struct IndexExpression
     IndexExpression(ExpressionPtr indexee, ExpressionPtr index)
         : indexee(std::move(indexee)), index(std::move(index)) {}
 
-    virtual ExprResult accept(ExpressionVisitor<ExprResult> *visitor) override
+    virtual ExprResult accept(ExpressionVisitor *visitor) override
     {
         return visitor->visit(this);
     }
@@ -349,7 +347,7 @@ struct DictionaryExpression
     DictionaryExpression(std::vector<Entry<ExpressionPtr>> entries)
         : entries(std::move(entries)) {}
     
-    virtual ExprResult accept(ExpressionVisitor<ExprResult> *visitor) override
+    virtual ExprResult accept(ExpressionVisitor *visitor) override
     {
         return visitor->visit(this);
     }
@@ -391,7 +389,7 @@ struct AccessExpression
     AccessExpression(ExpressionPtr accessible, Token accessor)
         : accessible(std::move(accessible)), accessor(std::move(accessor)) {}
     
-    virtual ExprResult accept(ExpressionVisitor<ExprResult> *visitor) override
+    virtual ExprResult accept(ExpressionVisitor *visitor) override
     {
         return visitor->visit(this);
     }

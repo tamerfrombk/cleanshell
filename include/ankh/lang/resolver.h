@@ -8,7 +8,7 @@ namespace ankh::lang {
 class Interpreter;
 
 class Resolver
-    : public ExpressionVisitor<void>
+    : public ExpressionVisitor
     , public StatementVisitor<void>
 {
 public:
@@ -18,19 +18,19 @@ private:
     Interpreter *interpreter_;
 
 private:
-    void visit(BinaryExpression *expr) override;
-    void visit(UnaryExpression *expr) override;
-    void visit(LiteralExpression *expr) override;
-    void visit(ParenExpression *expr) override;
-    void visit(IdentifierExpression *expr) override;
-    void visit(CallExpression *expr) override;
-    void visit(LambdaExpression *expr) override;
-    void visit(CommandExpression *expr) override;
-    void visit(ArrayExpression *expr) override;
-    void visit(IndexExpression *expr) override;
-    void visit(DictionaryExpression *expr) override;
-    void visit(StringExpression *expr) override;
-    void visit(AccessExpression *expr) override;
+    ExprResult visit(BinaryExpression *expr) override;
+    ExprResult visit(UnaryExpression *expr) override;
+    ExprResult visit(LiteralExpression *expr) override;
+    ExprResult visit(ParenExpression *expr) override;
+    ExprResult visit(IdentifierExpression *expr) override;
+    ExprResult visit(CallExpression *expr) override;
+    ExprResult visit(LambdaExpression *expr) override;
+    ExprResult visit(CommandExpression *expr) override;
+    ExprResult visit(ArrayExpression *expr) override;
+    ExprResult visit(IndexExpression *expr) override;
+    ExprResult visit(DictionaryExpression *expr) override;
+    ExprResult visit(StringExpression *expr) override;
+    ExprResult visit(AccessExpression *expr) override;
 
     void visit(PrintStatement *stmt) override;
     void visit(ExpressionStatement *stmt) override;
