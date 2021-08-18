@@ -22,6 +22,7 @@ SET(APP_SOURCES
     src/lang/parser.cc
     src/lang/expr.cc
     src/lang/interpreter.cc
+    src/lang/resolver.cc
     src/pkg/path.cc
 )
 
