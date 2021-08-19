@@ -222,7 +222,8 @@ static void print(const ankh::lang::ExprResult& result)
 }
 
 ankh::lang::Interpreter::Interpreter()
-    : current_env_(make_env<ExprResult>()) {}
+    : current_env_(make_env<ExprResult>())
+    , global_(current_env_) {}
 
 void ankh::lang::Interpreter::interpret(const Program& program)
 {
@@ -237,10 +238,11 @@ void ankh::lang::Interpreter::interpret(const Program& program)
 
 void ankh::lang::Interpreter::resolve(const Expression *expr, size_t hops)
 {
-    ANKH_UNUSED(expr);
-    ANKH_UNUSED(hops);
+    // We assume that the resolver is doing its job correctly here and resolving
+    // all variables. This is here just in case it doesn't ;)
+    ANKH_VERIFY(locals_.count(expr) == 0);
 
-    ANKH_FATAL("unimplemented");
+    locals_[expr] = hops;
 }
 
 void ankh::lang::Interpreter::resolve(const Statement *stmt, size_t hops)
@@ -326,12 +328,11 @@ ankh::lang::ExprResult ankh::lang::Interpreter::visit(IdentifierExpression *expr
 {
     ANKH_DEBUG("evaluating identifier expression '{}'", expr->name.str);
 
-    auto possible_value = current_env_->value(expr->name.str);
-    if (possible_value.has_value()) {
-        return possible_value.value();
+    if (auto possible_value = lookup(expr->name, expr); possible_value) {
+        return *possible_value;
     }
 
-    ::panic("identifier '{}' not defined", expr->name.str);
+    ::panic("identifier '{}' is not defined", expr->name.str);
 }
 
 ankh::lang::ExprResult ankh::lang::Interpreter::visit(CallExpression *expr)
@@ -726,29 +727,24 @@ void ankh::lang::Interpreter::visit(ankh::lang::BreakStatement *stmt)
 
 void ankh::lang::Interpreter::visit(ankh::lang::FunctionDeclaration *stmt)
 {
-    declare_function(stmt, current_env_);
-}
+    ANKH_DEBUG("evaluating function declaration of '{}'", stmt->name.str);
 
-void ankh::lang::Interpreter::declare_function(FunctionDeclaration *decl, EnvironmentPtr<ExprResult> env)
-{
-    ANKH_DEBUG("evaluating function declaration of '{}'", decl->name.str);
-
-    const std::string& name = decl->name.str;
+    const std::string& name = stmt->name.str;
     if (functions_.count(name) > 0) {
         ::panic("function '{}' is already declared", name);
     }
 
-    CallablePtr callable = make_callable<Function<ExprResult, Interpreter>>(this, decl->clone(), env);
+    CallablePtr callable = make_callable<Function<ExprResult, Interpreter>>(this, stmt->clone(), global_);
 
     ExprResult result { callable.get() };
     
     functions_[name] = std::move(callable);
     
-    if (!current_env_->declare(name, result)) {
+    if (!global_->declare(name, result)) {
         ::panic("'{}' is already defined", name);
     }
 
-    ANKH_DEBUG("function '{}' added to scope {}", name, current_env_->scope());
+    ANKH_DEBUG("function '{}' added to scope {}", name, global_->scope());
 }
 
 void ankh::lang::Interpreter::visit(ReturnStatement *stmt)
@@ -875,6 +871,16 @@ ankh::lang::ExprResult ankh::lang::Interpreter::evaluate_single_expr(const std::
 void ankh::lang::Interpreter::execute(const StatementPtr& stmt)
 {
     stmt->accept(this);
+}
+
+std::optional<ankh::lang::ExprResult> ankh::lang::Interpreter::lookup(const Token& name, const Expression *expr)
+{
+    if (locals_.count(expr) > 0) {
+        const size_t distance = locals_[expr];
+        return current_env_->value_at(distance, name.str);
+    }
+
+    return global_->value(name.str);
 }
 
 ankh::lang::Interpreter::Scope::Scope(ankh::lang::Interpreter *interpreter, ankh::lang::EnvironmentPtr<ExprResult> enclosing)

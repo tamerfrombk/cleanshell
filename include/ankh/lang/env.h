@@ -70,6 +70,11 @@ public:
         return std::nullopt;
     }
 
+    std::optional<T> value_at(size_t distance, const std::string& name) const noexcept
+    {
+        return ancestor(distance)->values_.at(name);
+    }
+
     bool contains(const std::string& key) const noexcept
     {
         return values_.count(key) > 0;
@@ -84,6 +89,17 @@ private:
     std::unordered_map<std::string, T> values_;
     EnvironmentPtr<T> enclosing_;
     const size_t scope_;
+
+private:
+    const Environment* ancestor(size_t distance) const noexcept
+    {
+        const Environment* env = this;
+        for (size_t i = 0; i < distance; ++i) {
+            env = env->enclosing_.get();
+        }
+
+        return env;
+    }
 };
 
 template <class T, class... Args>

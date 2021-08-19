@@ -21,6 +21,9 @@ public:
     Resolver(Interpreter *interpreter);
 
 private:
+    // TODO: I really don't like the tight coupling between the interpreter
+    // and the resolver here. See if we can use a mediator or bridge
+    // to disconnect them
     Interpreter *interpreter_;
     std::vector<Scope> scopes_;
 

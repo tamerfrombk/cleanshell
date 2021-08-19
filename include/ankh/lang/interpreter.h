@@ -77,9 +77,13 @@ private:
 
     std::string substitute(const StringExpression *expr);
     ExprResult evaluate_single_expr(const std::string& str);
-    void declare_function(FunctionDeclaration *decl, EnvironmentPtr<ExprResult> env);
+
+    std::optional<ExprResult> lookup(const Token& name, const Expression *expr);
+
 private:
     EnvironmentPtr<ExprResult> current_env_;
+    EnvironmentPtr<ExprResult> global_;
+    std::unordered_map<const Expression*, size_t> locals_;
 
     class Scope {
     public:
