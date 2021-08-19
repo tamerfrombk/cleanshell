@@ -8,6 +8,7 @@
 #include <ankh/lang/expr.h>
 #include <ankh/lang/statement.h>
 #include <ankh/lang/program.h>
+#include <ankh/lang/resolution_table.h>
 #include <ankh/lang/lambda.h>
 #include <ankh/lang/env.h>
 #include <ankh/lang/callable.h>
@@ -38,9 +39,6 @@ public:
     {
         return functions_;
     }
-
-    void resolve(const Expression *expr, size_t hops);
-    void resolve(const Statement *stmt, size_t hops);
 
 private:
     virtual ExprResult visit(BinaryExpression *expr) override;
@@ -83,8 +81,7 @@ private:
 private:
     EnvironmentPtr<ExprResult> current_env_;
     EnvironmentPtr<ExprResult> global_;
-    std::unordered_map<const Expression*, size_t> locals_;
-    std::unordered_map<const Statement*, size_t> locals_stmt_;
+    ResolutionTable resolution_table_;
 
     class Scope {
     public:

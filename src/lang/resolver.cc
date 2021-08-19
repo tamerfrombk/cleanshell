@@ -1,12 +1,18 @@
+#include "ankh/log.h"
 #include <ankh/lang/resolver.h>
 
 #include <ankh/def.h>
 
 #include <ankh/lang/exceptions.h>
-#include <ankh/lang/interpreter.h>
 
-ankh::lang::Resolver::Resolver(Interpreter *interpreter)
-    : interpreter_(interpreter) {}
+void ankh::lang::Resolver::resolve(Program& program)
+{
+    for (const auto& stmt : program.statements) {
+        stmt->accept(this);
+    }
+
+    program.table = table_;
+}
 
 ankh::lang::ExprResult ankh::lang::Resolver::visit(BinaryExpression *expr)
 {
@@ -299,7 +305,9 @@ void ankh::lang::Resolver::resolve(const Expression *expr, const Token& name)
     for (auto it = scopes_.crbegin(); it != scopes_.crend(); ++it) {
         if (it->count(name.str) > 0) {
             const size_t hops = it - scopes_.crbegin();
-            interpreter_->resolve(expr, scopes_.size() - 1 - hops);
+            ANKH_DEBUG("resolver: '{}' is '{}' hops away from the current environment '{}'", name.str, hops, scopes_.size());
+            ANKH_VERIFY(table_.expr_hops.count(expr) == 0);
+            table_.expr_hops[expr] = scopes_.size() - 1 - hops;
             return;
         }
     }
@@ -314,7 +322,9 @@ void ankh::lang::Resolver::resolve(const Statement *stmt, const Token& name)
     for (auto it = scopes_.crbegin(); it != scopes_.crend(); ++it) {
         if (it->count(name.str) > 0) {
             const size_t hops = it - scopes_.crbegin();
-            interpreter_->resolve(stmt, scopes_.size() - 1 - hops);
+            ANKH_DEBUG("resolver: '{}' is '{}' hops away from the current environment '{}'", name.str, hops, scopes_.size());
+            ANKH_VERIFY(table_.stmt_hops.count(stmt) == 0);
+            table_.stmt_hops[stmt] = scopes_.size() - 1 - hops;
             return;
         }
     }

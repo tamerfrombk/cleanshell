@@ -719,8 +719,7 @@ TEST_CASE("parse language expressions", "[parser]")
 
         REQUIRE(program.size() == 4);
 
-        const auto& statements = program.statements();
-        for (const auto& stmt : statements) {
+        for (const auto& stmt : program.statements) {
             auto literal = ankh::lang::instance<ankh::lang::ExpressionStatement>(stmt);
             REQUIRE(literal != nullptr);
             REQUIRE(ankh::lang::instanceof<ankh::lang::LiteralExpression>(literal->expr));
@@ -769,7 +768,7 @@ TEST_CASE("parse language expressions", "[parser]")
         )";
 
         auto program = ankh::lang::parse(source);
-        for (auto e : program.errors()) {
+        for (auto e : program.errors) {
             INFO(e);
         }
 
@@ -1256,7 +1255,7 @@ TEST_CASE("parse two arrays as two separate statements rather than an index oper
     auto program = ankh::lang::parse(source);
     REQUIRE(program.size() == 2);
 
-    for (auto& stmt : program.statements()) {
+    for (auto& stmt : program.statements) {
         auto ptr = ankh::lang::instance<ankh::lang::ExpressionStatement>(stmt);
         REQUIRE(ptr != nullptr);
         REQUIRE(ankh::lang::instanceof<ankh::lang::ArrayExpression>(ptr->expr));   

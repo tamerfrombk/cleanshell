@@ -227,29 +227,13 @@ ankh::lang::Interpreter::Interpreter()
 
 void ankh::lang::Interpreter::interpret(const Program& program)
 {
-    const auto& statements = program.statements();
-    for (const auto& stmt : statements) {
+    resolution_table_ = program.table;
+    for (const auto& stmt : program.statements) {
 #ifndef NDEBUG
         ANKH_DEBUG("{}", stmt->stringify());
 #endif
         execute(stmt);
     }
-}
-
-void ankh::lang::Interpreter::resolve(const Expression *expr, size_t hops)
-{
-    // We assume that the resolver is doing its job correctly here and resolving
-    // all variables. This is here just in case it doesn't ;)
-    ANKH_VERIFY(locals_.count(expr) == 0);
-
-    locals_[expr] = hops;
-}
-
-void ankh::lang::Interpreter::resolve(const Statement *stmt, size_t hops)
-{
-    ANKH_VERIFY(locals_stmt_.count(stmt) == 0);
-
-    locals_stmt_[stmt] = hops;
 }
 
 ankh::lang::ExprResult ankh::lang::Interpreter::visit(BinaryExpression *expr)
@@ -535,8 +519,8 @@ void ankh::lang::Interpreter::visit(VariableDeclaration *stmt)
 void ankh::lang::Interpreter::visit(AssignmentStatement *stmt)
 {
     const ExprResult init = evaluate(stmt->initializer);
-    if (locals_stmt_.count(stmt) > 0) {
-        const size_t distance = locals_stmt_[stmt];    
+    if (resolution_table_.stmt_hops.count(stmt) > 0) {
+        const size_t distance = resolution_table_.stmt_hops[stmt];    
         if (!current_env_->assign_at(distance, stmt->name.str, init)) {
             ANKH_FATAL("'{}' could not be assigned '{}' hops away from the current environment", 
                 stmt->name.str, distance);
@@ -863,8 +847,7 @@ ankh::lang::ExprResult ankh::lang::Interpreter::evaluate_single_expr(const std::
         ::panic("expression '{}' is not valid", str);
     }
 
-    const auto& statements = program.statements();
-    if (statements.size() > 1) {
+    if (program.statements.size() > 1) {
         ::panic("'{}' is a multi return expression");
     }
 
@@ -882,8 +865,8 @@ void ankh::lang::Interpreter::execute(const StatementPtr& stmt)
 
 std::optional<ankh::lang::ExprResult> ankh::lang::Interpreter::lookup(const Token& name, const Expression *expr)
 {
-    if (locals_.count(expr) > 0) {
-        const size_t distance = locals_[expr];
+    if (resolution_table_.expr_hops.count(expr) > 0) {
+        const size_t distance = resolution_table_.expr_hops[expr];
         return current_env_->value_at(distance, name.str);
     }
 

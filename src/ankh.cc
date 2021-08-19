@@ -27,8 +27,7 @@ static int execute(ankh::lang::Interpreter& interpreter, const std::string& scri
 {
     const ankh::lang::Program program = ankh::lang::parse(script);
     if (program.has_errors()) {
-        const auto& errors = program.errors();
-        for (const auto& e : errors) {
+        for (const auto& e : program.errors) {
            print_error(e);
         }
         return EXIT_FAILURE;

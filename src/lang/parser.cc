@@ -1,5 +1,3 @@
-#include "ankh/lang/expr.h"
-#include "ankh/lang/statement.h"
 #include <algorithm>
 #include <initializer_list>
 #include <random>
@@ -9,6 +7,7 @@
 #include <ankh/lang/token.h>
 #include <ankh/lang/exceptions.h>
 #include <ankh/lang/lambda.h>
+#include <ankh/lang/resolver.h>
 
 #include <ankh/log.h>
 
@@ -52,7 +51,13 @@ ankh::lang::Program ankh::lang::parse(const std::string& source)
 
     ankh::lang::Parser parser(tokens);
 
-    return parser.parse();
+    auto program = parser.parse();
+
+    ankh::lang::Resolver resolver;
+
+    resolver.resolve(program);
+
+    return program;
 }
 
 ankh::lang::Parser::Parser(const std::vector<Token>& tokens)

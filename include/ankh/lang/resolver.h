@@ -4,12 +4,13 @@
 #include <unordered_map>
 #include <string>
 
+#include <ankh/lang/program.h>
 #include <ankh/lang/expr.h>
 #include <ankh/lang/statement.h>
+#include <ankh/lang/lambda.h>
+#include <ankh/lang/resolution_table.h>
 
 namespace ankh::lang {
-
-class Interpreter;
 
 class Resolver
     : public ExpressionVisitor
@@ -18,14 +19,11 @@ class Resolver
     using Scope = std::unordered_map<std::string, bool>;
 
 public:
-    Resolver(Interpreter *interpreter);
+    void resolve(ankh::lang::Program& program);
 
 private:
-    // TODO: I really don't like the tight coupling between the interpreter
-    // and the resolver here. See if we can use a mediator or bridge
-    // to disconnect them
-    Interpreter *interpreter_;
     std::vector<Scope> scopes_;
+    ResolutionTable table_;
 
 private:
     ExprResult visit(BinaryExpression *expr) override;

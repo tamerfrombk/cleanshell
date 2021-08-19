@@ -5,49 +5,41 @@
 
 #include <ankh/lang/statement.h>
 
+#include <ankh/lang/resolution_table.h>
+
 namespace ankh::lang {
 
-class Program
+struct Program
 {
-public:
+    std::vector<StatementPtr> statements;
+    std::vector<std::string> errors;
+    ResolutionTable table;
+
     void add_statement(StatementPtr stmt) noexcept
     {
-        statements_.push_back(std::move(stmt));
+        statements.push_back(std::move(stmt));
     }
 
     void add_error(std::string&& error) noexcept
     {
-        errors_.push_back(std::forward<std::string>(error));
+        errors.push_back(std::forward<std::string>(error));
     }
 
     bool has_errors() const noexcept
     {
-        return errors_.size() > 0;
-    }
-
-    const std::vector<std::string>& errors() const noexcept
-    {
-        return errors_;
-    }
-
-    const std::vector<StatementPtr>& statements() const noexcept
-    {
-        return statements_;
+        return errors.size() > 0;
     }
 
     std::size_t size() const noexcept
     {
-        return statements_.size();
+        return statements.size();
     }
 
     const StatementPtr& operator[](size_t i) const noexcept
     {
-        return statements_[i];
+        return statements[i];
     }
 
-private:
-    std::vector<StatementPtr> statements_;
-    std::vector<std::string> errors_;
 };
 
 }
