@@ -56,7 +56,18 @@ ankh::lang::ExprResult ankh::lang::Resolver::visit(CallExpression *expr)
 
 ankh::lang::ExprResult ankh::lang::Resolver::visit(LambdaExpression *expr)
 {
-    ANKH_UNUSED(expr);
+    const Token name(expr->generated_name, TokenType::IDENTIFIER, 0, 0);
+    
+    declare(name);
+    define(name);
+
+    begin_scope();
+    for (const Token& param : expr->params) {
+        declare(param);
+        define(param);
+    }
+    resolve(expr->body);
+    end_scope();
 
     return {};
 }
@@ -181,7 +192,16 @@ void ankh::lang::Resolver::visit(BreakStatement *stmt)
 
 void ankh::lang::Resolver::visit(FunctionDeclaration *stmt)
 {
-    ANKH_UNUSED(stmt);
+    declare(stmt->name);
+    define(stmt->name);
+
+    begin_scope();
+    for (const Token& param : stmt->params) {
+        declare(param);
+        define(param);
+    }
+    resolve(stmt->body);
+    end_scope();
 }
 
 void ankh::lang::Resolver::visit(ReturnStatement *stmt)
