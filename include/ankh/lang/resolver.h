@@ -61,6 +61,7 @@ private:
     void resolve(const StatementPtr& stmt);
     void resolve(const std::vector<StatementPtr>& stmts);
     void resolve(const Expression* expr, const Token& name);
+    void resolve(const Statement* stmt, const Token& name);
 
     void declare(const Token& name) noexcept;
     void define(const Token& name) noexcept;

@@ -40,6 +40,7 @@ public:
     }
 
     void resolve(const Expression *expr, size_t hops);
+    void resolve(const Statement *stmt, size_t hops);
 
 private:
     virtual ExprResult visit(BinaryExpression *expr) override;

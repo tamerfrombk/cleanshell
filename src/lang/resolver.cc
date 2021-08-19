@@ -122,6 +122,8 @@ void ankh::lang::Resolver::visit(VariableDeclaration *stmt)
 
 void ankh::lang::Resolver::visit(AssignmentStatement *stmt)
 {
+    resolve(stmt->initializer);
+    resolve(stmt, stmt->name);
     ANKH_UNUSED(stmt);
 }
 
@@ -219,6 +221,21 @@ void ankh::lang::Resolver::resolve(const Expression *expr, const Token& name)
         if (it->count(name.str) > 0) {
             const size_t hops = it - scopes_.crbegin();
             interpreter_->resolve(expr, scopes_.size() - 1 - hops);
+            return;
+        }
+    }
+}
+
+void ankh::lang::Resolver::resolve(const Statement *stmt, const Token& name)
+{
+    if (scopes_.empty()) {
+        return;
+    }
+
+    for (auto it = scopes_.crbegin(); it != scopes_.crend(); ++it) {
+        if (it->count(name.str) > 0) {
+            const size_t hops = it - scopes_.crbegin();
+            interpreter_->resolve(stmt, scopes_.size() - 1 - hops);
             return;
         }
     }
