@@ -10,14 +10,15 @@ ankh::lang::Resolver::Resolver(Interpreter *interpreter)
 
 ankh::lang::ExprResult ankh::lang::Resolver::visit(BinaryExpression *expr)
 {
-    ANKH_UNUSED(expr);
+    resolve(expr->left);
+    resolve(expr->right);
 
     return {};
 }
 
 ankh::lang::ExprResult ankh::lang::Resolver::visit(UnaryExpression *expr)
 {
-    ANKH_UNUSED(expr);
+    resolve(expr->right);
 
     return {};
 }
@@ -31,7 +32,7 @@ ankh::lang::ExprResult ankh::lang::Resolver::visit(LiteralExpression *expr)
 
 ankh::lang::ExprResult ankh::lang::Resolver::visit(ParenExpression *expr)
 {
-    ANKH_UNUSED(expr);
+    resolve(expr->expr);
 
     return {};
 }
@@ -49,7 +50,10 @@ ankh::lang::ExprResult ankh::lang::Resolver::visit(IdentifierExpression *expr)
 
 ankh::lang::ExprResult ankh::lang::Resolver::visit(CallExpression *expr)
 {
-    ANKH_UNUSED(expr);
+    resolve(expr->callee);
+    for (const auto& arg : expr->args) {
+        resolve(arg);
+    }
 
     return {};
 }
@@ -74,6 +78,9 @@ ankh::lang::ExprResult ankh::lang::Resolver::visit(LambdaExpression *expr)
 
 ankh::lang::ExprResult ankh::lang::Resolver::visit(CommandExpression *expr)
 {
+    // TODO: at the moment, commands do not contain any expressions to resolve
+    // but this is not really the case since we have InterpolationExpressions that _can_
+    // have variables
     ANKH_UNUSED(expr);
 
     return {};
@@ -81,21 +88,29 @@ ankh::lang::ExprResult ankh::lang::Resolver::visit(CommandExpression *expr)
 
 ankh::lang::ExprResult ankh::lang::Resolver::visit(ArrayExpression *expr)
 {
-    ANKH_UNUSED(expr);
+    for (const auto& elem : expr->elems) {
+        resolve(elem);
+    }
 
     return {};
 }
 
 ankh::lang::ExprResult ankh::lang::Resolver::visit(IndexExpression *expr)
 {
-    ANKH_UNUSED(expr);
+    resolve(expr->indexee);
+    resolve(expr->index);
 
     return {};
 }
 
 ankh::lang::ExprResult ankh::lang::Resolver::visit(DictionaryExpression *expr)
 {
-    ANKH_UNUSED(expr);
+    begin_scope();
+    for (const auto& [k, v] : expr->entries) {
+        resolve(k);
+        resolve(v);
+    }
+    end_scope();
 
     return {};
 }
@@ -109,19 +124,25 @@ ankh::lang::ExprResult ankh::lang::Resolver::visit(StringExpression *expr)
 
 ankh::lang::ExprResult ankh::lang::Resolver::visit(AccessExpression *expr)
 {
-    ANKH_UNUSED(expr);
+    resolve(expr->accessible);
+    if (!scopes_.empty() && !is_defined(expr->accessor)) {
+        panic<ParseException>("{}:{}, '{}' is not a member of '{}'", 
+            expr->accessor.line, expr->accessor.col, expr->accessor.str, expr->accessible->stringify());
+    }
+
+    resolve(expr, expr->accessor);
 
     return {};
 }
 
 void ankh::lang::Resolver::visit(PrintStatement *stmt)
 {
-    ANKH_UNUSED(stmt);
+    resolve(stmt->expr);
 }
 
 void ankh::lang::Resolver::visit(ExpressionStatement *stmt)
 {
-    ANKH_UNUSED(stmt);
+    resolve(stmt->expr);
 }
 
 void ankh::lang::Resolver::visit(VariableDeclaration *stmt)
@@ -135,32 +156,50 @@ void ankh::lang::Resolver::visit(AssignmentStatement *stmt)
 {
     resolve(stmt->initializer);
     resolve(stmt, stmt->name);
-    ANKH_UNUSED(stmt);
 }
 
 void ankh::lang::Resolver::visit(IncOrDecIdentifierStatement* stmt)
 {
-    ANKH_UNUSED(stmt);
+    resolve(stmt->expr);
 }
 
 void ankh::lang::Resolver::visit(IncOrDecAccessStatement *stmt)
 {
-    ANKH_UNUSED(stmt);
+    resolve(stmt->expr);
 }
 
 void ankh::lang::Resolver::visit(CompoundAssignment* stmt)
 {
-    ANKH_UNUSED(stmt);
+    resolve(stmt->value);
+    if (!scopes_.empty() && !is_defined(stmt->target)) {
+        panic<ParseException>("{}:{}, '{}' is not defined", 
+            stmt->target.line, stmt->target.col, stmt->target.str);
+    }
+    resolve(stmt, stmt->target);
 }
 
 void ankh::lang::Resolver::visit(ModifyStatement* stmt)
 {
-    ANKH_UNUSED(stmt);
+    resolve(stmt->value);
+
+    resolve(stmt->object);
+    if (!scopes_.empty() && !is_defined(stmt->name)) {
+        panic<ParseException>("{}:{}, '{}' is not a member of '{}'", 
+            stmt->name.line, stmt->name.col, stmt->name.str, stmt->object->stringify());
+    }
+    resolve(stmt, stmt->name);
 }
 
 void ankh::lang::Resolver::visit(CompoundModify* stmt)
 {
-    ANKH_UNUSED(stmt);
+    resolve(stmt->value);
+
+    resolve(stmt->object);
+    if (!scopes_.empty() && !is_defined(stmt->name)) {
+        panic<ParseException>("{}:{}, '{}' is not a member of '{}'", 
+            stmt->name.line, stmt->name.col, stmt->name.str, stmt->object->stringify());
+    }
+    resolve(stmt, stmt->name);
 }
 
 void ankh::lang::Resolver::visit(BlockStatement *stmt)
@@ -172,17 +211,29 @@ void ankh::lang::Resolver::visit(BlockStatement *stmt)
 
 void ankh::lang::Resolver::visit(IfStatement *stmt)
 {
-    ANKH_UNUSED(stmt);
+    resolve(stmt->condition);
+    resolve(stmt->then_block);
+    if (stmt->else_block != nullptr) {
+        resolve(stmt->else_block);
+    }
 }
 
 void ankh::lang::Resolver::visit(WhileStatement *stmt)
 {
-    ANKH_UNUSED(stmt);
+    resolve(stmt->condition);
+    resolve(stmt->body);
 }
 
 void ankh::lang::Resolver::visit(ForStatement *stmt)
 {
-    ANKH_UNUSED(stmt);
+    begin_scope();
+
+    if (stmt->init != nullptr)      { resolve(stmt->init);      }
+    if (stmt->condition != nullptr) { resolve(stmt->condition); }
+    if (stmt->mutator != nullptr)   { resolve(stmt->mutator);   }
+    resolve(stmt->body);
+    
+    end_scope();
 }
 
 void ankh::lang::Resolver::visit(BreakStatement *stmt)
@@ -206,12 +257,20 @@ void ankh::lang::Resolver::visit(FunctionDeclaration *stmt)
 
 void ankh::lang::Resolver::visit(ReturnStatement *stmt)
 {
-    ANKH_UNUSED(stmt);
+    resolve(stmt->expr);
 }
 
 void ankh::lang::Resolver::visit(DataDeclaration *stmt)
 {
-    ANKH_UNUSED(stmt);
+    declare(stmt->name);
+    define(stmt->name);
+
+    begin_scope();
+    for (const Token& member : stmt->members) {
+        declare(member);
+        define(member);
+    }
+    end_scope();
 }
 
 void ankh::lang::Resolver::resolve(const ExpressionPtr& expr)
