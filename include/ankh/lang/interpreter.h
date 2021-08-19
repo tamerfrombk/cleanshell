@@ -84,6 +84,7 @@ private:
     EnvironmentPtr<ExprResult> current_env_;
     EnvironmentPtr<ExprResult> global_;
     std::unordered_map<const Expression*, size_t> locals_;
+    std::unordered_map<const Statement*, size_t> locals_stmt_;
 
     class Scope {
     public:

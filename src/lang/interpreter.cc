@@ -247,10 +247,9 @@ void ankh::lang::Interpreter::resolve(const Expression *expr, size_t hops)
 
 void ankh::lang::Interpreter::resolve(const Statement *stmt, size_t hops)
 {
-    ANKH_UNUSED(stmt);
-    ANKH_UNUSED(hops);
+    ANKH_VERIFY(locals_stmt_.count(stmt) == 0);
 
-    ANKH_FATAL("unimplemented");
+    locals_stmt_[stmt] = hops;
 }
 
 ankh::lang::ExprResult ankh::lang::Interpreter::visit(BinaryExpression *expr)
@@ -535,9 +534,17 @@ void ankh::lang::Interpreter::visit(VariableDeclaration *stmt)
 
 void ankh::lang::Interpreter::visit(AssignmentStatement *stmt)
 {
-    const ExprResult result = evaluate(stmt->initializer);
-    if (!current_env_->assign(stmt->name.str, result)) {
-        ::panic("'{}' is not defined", stmt->name.str);
+    const ExprResult init = evaluate(stmt->initializer);
+    if (locals_stmt_.count(stmt) > 0) {
+        const size_t distance = locals_stmt_[stmt];    
+        if (!current_env_->assign_at(distance, stmt->name.str, init)) {
+            ANKH_FATAL("'{}' could not be assigned '{}' hops away from the current environment", 
+                stmt->name.str, distance);
+        }
+    } else {
+        if (!global_->assign(stmt->name.str, init)) {
+            ANKH_FATAL("'{}' could not be assigned to global scope", stmt->name.str);
+        }
     }
 }
 

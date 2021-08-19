@@ -42,6 +42,18 @@ public:
         return false;
     }
 
+    ANKH_NO_DISCARD bool assign_at(size_t distance, const std::string& name, const T& result) noexcept
+    {
+        Environment *env = ancestor(distance);
+        if (!env->contains(name)) {
+            return false;
+        }
+
+        env->values_[name] = result;
+
+        return true;
+    }
+
     ANKH_NO_DISCARD bool declare(const std::string& name, const T& result) noexcept
     {
         ANKH_DEBUG("PUT '{}' = '{}' @ scope '{}'", name, result.stringify(), scope());
@@ -91,6 +103,16 @@ private:
     const size_t scope_;
 
 private:
+    Environment* ancestor(size_t distance) noexcept
+    {
+        Environment* env = this;
+        for (size_t i = 0; i < distance; ++i) {
+            env = env->enclosing_.get();
+        }
+
+        return env;
+    }
+
     const Environment* ancestor(size_t distance) const noexcept
     {
         const Environment* env = this;
