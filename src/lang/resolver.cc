@@ -394,7 +394,8 @@ void ankh::lang::Resolver::define(const Token& name) noexcept
 
 bool ankh::lang::Resolver::is_declared_but_not_defined(const Token& name) const noexcept
 {
-    return top().count(name.str) > 0 && top()[name.str] == false;
+    // Yes, at() is not nothrow but it is effectively nothrow here
+    return top().count(name.str) > 0 && top().at(name.str) == false;
 }
 
 void ankh::lang::Resolver::begin_scope() noexcept

@@ -228,6 +228,15 @@ ankh::lang::Interpreter::Interpreter()
 void ankh::lang::Interpreter::interpret(const Program& program)
 {
     resolution_table_ = program.table;
+#ifndef NDEBUG
+    for (const auto& [k, v] : resolution_table_.expr_hops) {
+        ANKH_DEBUG("expr: '{}', hops: {}", k->stringify(), v);
+    }
+    for (const auto& [k, v] : resolution_table_.stmt_hops) {
+        ANKH_DEBUG("stmt: '{}', hops: {}", k->stringify(), v);
+    }
+#endif
+
     for (const auto& stmt : program.statements) {
 #ifndef NDEBUG
         ANKH_DEBUG("{}", stmt->stringify());
