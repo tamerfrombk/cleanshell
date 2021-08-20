@@ -7,7 +7,7 @@
 
 ankh::lang::ResolutionTable ankh::lang::Resolver::resolve(const Program& program)
 {
-    table_.clear();
+    table_.hops.clear();
 
     for (const auto& stmt : program.statements) {
         stmt->accept(this);
@@ -53,7 +53,7 @@ ankh::lang::ExprResult ankh::lang::Resolver::visit(ParenExpression *expr)
 
 ankh::lang::ExprResult ankh::lang::Resolver::visit(IdentifierExpression *expr)
 {
-    ANKH_DEBUG("resolving '{}'", expr->stringify());
+    ANKH_DEBUG("resolving '{}' @ {}", expr->stringify(), static_cast<void*>(expr));
     
     if (!scopes_.empty() && is_declared_but_not_defined(expr->name)) {
         lang::panic<ParseException>("{}:{}, a local variable cannot be initialized with a global variable of the same name", expr->name.line, expr->name.col);
@@ -342,7 +342,7 @@ void ankh::lang::Resolver::resolve(const std::vector<StatementPtr>& stmts)
     }
 }
 
-void ankh::lang::Resolver::resolve(const Expression *expr, const Token& name)
+void ankh::lang::Resolver::resolve(const void *entity, const Token& name)
 {
     if (scopes_.empty()) {
         return;
@@ -352,27 +352,9 @@ void ankh::lang::Resolver::resolve(const Expression *expr, const Token& name)
         if (it->count(name.str) > 0) {
             const size_t hops = (it - scopes_.crbegin());
             ANKH_DEBUG("resolver: '{}' @ {} is '{}' hops away from the current environment '{}'",
-                name.str, static_cast<const void*>(expr) , hops, scopes_.size());
-            ANKH_VERIFY(table_.expr_hops.count(expr) == 0);
-            table_.expr_hops[expr] = hops;
-            return;
-        }
-    }
-}
-
-void ankh::lang::Resolver::resolve(const Statement *stmt, const Token& name)
-{
-    if (scopes_.empty()) {
-        return;
-    }
-
-    for (auto it = scopes_.crbegin(); it != scopes_.crend(); ++it) {
-        if (it->count(name.str) > 0) {
-            const size_t hops = (it - scopes_.crbegin());
-            ANKH_DEBUG("resolver: '{}' @ {} is '{}' hops away from the current environment '{}'",
-                name.str, static_cast<const void*>(stmt) , hops, scopes_.size());
-            ANKH_VERIFY(table_.stmt_hops.count(stmt) == 0);
-            table_.stmt_hops[stmt] = hops;
+                name.str, entity , hops, scopes_.size());
+            ANKH_VERIFY(table_.hops.count(entity) == 0);
+            table_.hops[entity] = hops;
             return;
         }
     }

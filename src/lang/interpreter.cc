@@ -228,11 +228,15 @@ void ankh::lang::Interpreter::interpret(const Program& program)
 {
     resolution_table_ = program.table;
 #ifndef NDEBUG
-    for (const auto& [k, v] : resolution_table_.expr_hops) {
-        ANKH_DEBUG("expr: '{}' @ {}, hops: {}", k->stringify(), static_cast<const void*>(k), v);
-    }
-    for (const auto& [k, v] : resolution_table_.stmt_hops) {
-        ANKH_DEBUG("stmt: '{}' @ {}, hops: {}", k->stringify(), static_cast<const void*>(k), v);
+    for (const auto& [k, v] : resolution_table_.hops) {
+        // TODO: this is very ugly. Can we make it look cleaner?
+        std::string serialized = reinterpret_cast<const Expression*>(k)
+            ? static_cast<const Expression*>(k)->stringify()
+            : reinterpret_cast<const Statement*>(k)
+            ? static_cast<const Statement*>(k)->stringify()
+            : "";
+
+        ANKH_DEBUG("'{}' @ {}, hops: {}", serialized, k, v);
     }
 #endif
 
@@ -527,8 +531,8 @@ void ankh::lang::Interpreter::visit(VariableDeclaration *stmt)
 void ankh::lang::Interpreter::visit(AssignmentStatement *stmt)
 {
     const ExprResult init = evaluate(stmt->initializer);
-    if (resolution_table_.stmt_hops.count(stmt) > 0) {
-        const size_t distance = resolution_table_.stmt_hops[stmt];    
+    if (resolution_table_.hops.count(stmt) > 0) {
+        const size_t distance = resolution_table_.hops[stmt];    
         if (!current_env_->assign_at(distance, stmt->name.str, init)) {
             ANKH_FATAL("'{}' could not be assigned '{}' hops away from the current environment", 
                 stmt->name.str, distance);
@@ -875,9 +879,9 @@ std::optional<ankh::lang::ExprResult> ankh::lang::Interpreter::lookup(const Toke
 {
     ANKH_DEBUG("looking up '{}' @ {}", expr->stringify(), static_cast<const void*>(expr));
 
-    if (resolution_table_.expr_hops.count(expr) > 0) {
+    if (resolution_table_.hops.count(expr) > 0) {
         ANKH_DEBUG("resolution table determined {} to be local", name.str);
-        const size_t distance = resolution_table_.expr_hops[expr];
+        const size_t distance = resolution_table_.hops[expr];
         return current_env_->value_at(distance, name.str);
     }
     ANKH_DEBUG("resolution table determined {} to be global", name.str);
