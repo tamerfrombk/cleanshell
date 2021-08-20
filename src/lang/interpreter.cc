@@ -1,4 +1,3 @@
-#include "ankh/lang/statement.h"
 #include <cstddef>
 #include <cstdlib>
 #include <cstdio>
@@ -230,10 +229,10 @@ void ankh::lang::Interpreter::interpret(const Program& program)
     resolution_table_ = program.table;
 #ifndef NDEBUG
     for (const auto& [k, v] : resolution_table_.expr_hops) {
-        ANKH_DEBUG("expr: '{}', hops: {}", k->stringify(), v);
+        ANKH_DEBUG("expr: '{}' @ {}, hops: {}", k->stringify(), static_cast<const void*>(k), v);
     }
     for (const auto& [k, v] : resolution_table_.stmt_hops) {
-        ANKH_DEBUG("stmt: '{}', hops: {}", k->stringify(), v);
+        ANKH_DEBUG("stmt: '{}' @ {}, hops: {}", k->stringify(), static_cast<const void*>(k), v);
     }
 #endif
 
@@ -874,10 +873,14 @@ void ankh::lang::Interpreter::execute(const StatementPtr& stmt)
 
 std::optional<ankh::lang::ExprResult> ankh::lang::Interpreter::lookup(const Token& name, const Expression *expr)
 {
+    ANKH_DEBUG("looking up '{}' @ {}", expr->stringify(), static_cast<const void*>(expr));
+
     if (resolution_table_.expr_hops.count(expr) > 0) {
+        ANKH_DEBUG("resolution table determined {} to be local", name.str);
         const size_t distance = resolution_table_.expr_hops[expr];
         return current_env_->value_at(distance, name.str);
     }
+    ANKH_DEBUG("resolution table determined {} to be global", name.str);
 
     return global_->value(name.str);
 }

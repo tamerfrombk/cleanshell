@@ -55,7 +55,7 @@ ankh::lang::Program ankh::lang::parse(const std::string& source)
 
     ankh::lang::Resolver resolver;
 
-    resolver.resolve(program);
+    program.table = resolver.resolve(program);
 
     return program;
 }

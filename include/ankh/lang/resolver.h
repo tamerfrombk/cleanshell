@@ -19,7 +19,7 @@ class Resolver
     using Scope = std::unordered_map<std::string, bool>;
 
 public:
-    void resolve(ankh::lang::Program& program);
+    ResolutionTable resolve(const ankh::lang::Program& program);
 
 private:
     std::vector<Scope> scopes_;
