@@ -465,7 +465,7 @@ struct FunctionDeclaration
 
     virtual std::string stringify() const noexcept override
     {
-        std::string result("fn (");
+        std::string result("fn " + name.str + "(");
         if (params.size() > 0) {
             result += params[0].str;
             for (size_t i = 1; i < params.size(); ++i) {
