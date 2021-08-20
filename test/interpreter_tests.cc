@@ -253,11 +253,11 @@ TEST_CASE("call expressions", "[interpreter]")
     SECTION("function call, non-recursive")
     {
         const std::string source = R"(
-            fn foo() {
-                return "foobar"
+            fn foo(str) {
+                return str
             }
 
-            foo()
+            foo("foobar")
         )";
 
         auto [program, results] = interpret(interpreter, source);
