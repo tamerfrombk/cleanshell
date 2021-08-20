@@ -1,7 +1,7 @@
-#include "ankh/log.h"
 #include <ankh/lang/resolver.h>
 
 #include <ankh/def.h>
+#include <ankh/log.h>
 
 #include <ankh/lang/exceptions.h>
 
@@ -16,6 +16,8 @@ void ankh::lang::Resolver::resolve(Program& program)
 
 ankh::lang::ExprResult ankh::lang::Resolver::visit(BinaryExpression *expr)
 {
+    ANKH_DEBUG("resolving '{}'", expr->stringify());
+
     resolve(expr->left);
     resolve(expr->right);
 
@@ -24,6 +26,8 @@ ankh::lang::ExprResult ankh::lang::Resolver::visit(BinaryExpression *expr)
 
 ankh::lang::ExprResult ankh::lang::Resolver::visit(UnaryExpression *expr)
 {
+    ANKH_DEBUG("resolving '{}'", expr->stringify());
+
     resolve(expr->right);
 
     return {};
@@ -38,6 +42,8 @@ ankh::lang::ExprResult ankh::lang::Resolver::visit(LiteralExpression *expr)
 
 ankh::lang::ExprResult ankh::lang::Resolver::visit(ParenExpression *expr)
 {
+    ANKH_DEBUG("resolving '{}'", expr->stringify());
+
     resolve(expr->expr);
 
     return {};
@@ -45,6 +51,8 @@ ankh::lang::ExprResult ankh::lang::Resolver::visit(ParenExpression *expr)
 
 ankh::lang::ExprResult ankh::lang::Resolver::visit(IdentifierExpression *expr)
 {
+    ANKH_DEBUG("resolving '{}'", expr->stringify());
+    
     if (!scopes_.empty() && !is_defined(expr->name)) {
         lang::panic<ParseException>("{}:{}, a local variable cannot be initialized with a global variable of the same name", expr->name.line, expr->name.col);
     }
@@ -56,6 +64,8 @@ ankh::lang::ExprResult ankh::lang::Resolver::visit(IdentifierExpression *expr)
 
 ankh::lang::ExprResult ankh::lang::Resolver::visit(CallExpression *expr)
 {
+    ANKH_DEBUG("resolving '{}'", expr->stringify());
+    
     resolve(expr->callee);
     for (const auto& arg : expr->args) {
         resolve(arg);
@@ -66,6 +76,8 @@ ankh::lang::ExprResult ankh::lang::Resolver::visit(CallExpression *expr)
 
 ankh::lang::ExprResult ankh::lang::Resolver::visit(LambdaExpression *expr)
 {
+    ANKH_DEBUG("resolving '{}'", expr->stringify());
+    
     const Token name(expr->generated_name, TokenType::IDENTIFIER, 0, 0);
     
     declare(name);
@@ -84,6 +96,8 @@ ankh::lang::ExprResult ankh::lang::Resolver::visit(LambdaExpression *expr)
 
 ankh::lang::ExprResult ankh::lang::Resolver::visit(CommandExpression *expr)
 {
+    ANKH_DEBUG("resolving '{}'", expr->stringify());
+    
     // TODO: at the moment, commands do not contain any expressions to resolve
     // but this is not really the case since we have InterpolationExpressions that _can_
     // have variables
@@ -94,6 +108,8 @@ ankh::lang::ExprResult ankh::lang::Resolver::visit(CommandExpression *expr)
 
 ankh::lang::ExprResult ankh::lang::Resolver::visit(ArrayExpression *expr)
 {
+    ANKH_DEBUG("resolving '{}'", expr->stringify());
+    
     for (const auto& elem : expr->elems) {
         resolve(elem);
     }
@@ -103,6 +119,8 @@ ankh::lang::ExprResult ankh::lang::Resolver::visit(ArrayExpression *expr)
 
 ankh::lang::ExprResult ankh::lang::Resolver::visit(IndexExpression *expr)
 {
+    ANKH_DEBUG("resolving '{}'", expr->stringify());
+    
     resolve(expr->indexee);
     resolve(expr->index);
 
@@ -111,6 +129,8 @@ ankh::lang::ExprResult ankh::lang::Resolver::visit(IndexExpression *expr)
 
 ankh::lang::ExprResult ankh::lang::Resolver::visit(DictionaryExpression *expr)
 {
+    ANKH_DEBUG("resolving '{}'", expr->stringify());
+    
     begin_scope();
     for (const auto& [k, v] : expr->entries) {
         resolve(k);
@@ -130,6 +150,8 @@ ankh::lang::ExprResult ankh::lang::Resolver::visit(StringExpression *expr)
 
 ankh::lang::ExprResult ankh::lang::Resolver::visit(AccessExpression *expr)
 {
+    ANKH_DEBUG("resolving '{}'", expr->stringify());
+    
     resolve(expr->accessible);
     if (!scopes_.empty() && !is_defined(expr->accessor)) {
         panic<ParseException>("{}:{}, '{}' is not a member of '{}'", 
@@ -143,6 +165,8 @@ ankh::lang::ExprResult ankh::lang::Resolver::visit(AccessExpression *expr)
 
 void ankh::lang::Resolver::visit(PrintStatement *stmt)
 {
+    ANKH_DEBUG("resolving '{}'", stmt->stringify());
+    
     resolve(stmt->expr);
 }
 
@@ -153,6 +177,8 @@ void ankh::lang::Resolver::visit(ExpressionStatement *stmt)
 
 void ankh::lang::Resolver::visit(VariableDeclaration *stmt)
 {
+    ANKH_DEBUG("resolving '{}'", stmt->stringify());
+
     declare(stmt->name);
     resolve(stmt->initializer);
     define(stmt->name);
@@ -160,6 +186,8 @@ void ankh::lang::Resolver::visit(VariableDeclaration *stmt)
 
 void ankh::lang::Resolver::visit(AssignmentStatement *stmt)
 {
+    ANKH_DEBUG("resolving '{}'", stmt->stringify());
+
     resolve(stmt->initializer);
     resolve(stmt, stmt->name);
 }
@@ -176,6 +204,8 @@ void ankh::lang::Resolver::visit(IncOrDecAccessStatement *stmt)
 
 void ankh::lang::Resolver::visit(CompoundAssignment* stmt)
 {
+    ANKH_DEBUG("resolving '{}'", stmt->stringify());
+
     resolve(stmt->value);
     if (!scopes_.empty() && !is_defined(stmt->target)) {
         panic<ParseException>("{}:{}, '{}' is not defined", 
@@ -186,6 +216,8 @@ void ankh::lang::Resolver::visit(CompoundAssignment* stmt)
 
 void ankh::lang::Resolver::visit(ModifyStatement* stmt)
 {
+    ANKH_DEBUG("resolving '{}'", stmt->stringify());
+
     resolve(stmt->value);
 
     resolve(stmt->object);
@@ -198,6 +230,8 @@ void ankh::lang::Resolver::visit(ModifyStatement* stmt)
 
 void ankh::lang::Resolver::visit(CompoundModify* stmt)
 {
+    ANKH_DEBUG("resolving '{}'", stmt->stringify());
+
     resolve(stmt->value);
 
     resolve(stmt->object);
@@ -217,6 +251,8 @@ void ankh::lang::Resolver::visit(BlockStatement *stmt)
 
 void ankh::lang::Resolver::visit(IfStatement *stmt)
 {
+    ANKH_DEBUG("resolving '{}'", stmt->stringify());
+
     resolve(stmt->condition);
     resolve(stmt->then_block);
     if (stmt->else_block != nullptr) {
@@ -226,12 +262,16 @@ void ankh::lang::Resolver::visit(IfStatement *stmt)
 
 void ankh::lang::Resolver::visit(WhileStatement *stmt)
 {
+    ANKH_DEBUG("resolving '{}'", stmt->stringify());
+
     resolve(stmt->condition);
     resolve(stmt->body);
 }
 
 void ankh::lang::Resolver::visit(ForStatement *stmt)
 {
+    ANKH_DEBUG("resolving '{}'", stmt->stringify());
+
     begin_scope();
 
     if (stmt->init != nullptr)      { resolve(stmt->init);      }
@@ -249,6 +289,8 @@ void ankh::lang::Resolver::visit(BreakStatement *stmt)
 
 void ankh::lang::Resolver::visit(FunctionDeclaration *stmt)
 {
+    ANKH_DEBUG("resolving '{}'", stmt->stringify());
+
     declare(stmt->name);
     define(stmt->name);
 
@@ -268,6 +310,8 @@ void ankh::lang::Resolver::visit(ReturnStatement *stmt)
 
 void ankh::lang::Resolver::visit(DataDeclaration *stmt)
 {
+    ANKH_DEBUG("resolving '{}'", stmt->stringify());
+
     declare(stmt->name);
     define(stmt->name);
 
