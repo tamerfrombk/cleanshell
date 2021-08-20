@@ -53,7 +53,7 @@ ankh::lang::ExprResult ankh::lang::Resolver::visit(IdentifierExpression *expr)
 {
     ANKH_DEBUG("resolving '{}'", expr->stringify());
     
-    if (!scopes_.empty() && !is_defined(expr->name)) {
+    if (!scopes_.empty() && is_declared_but_not_defined(expr->name)) {
         lang::panic<ParseException>("{}:{}, a local variable cannot be initialized with a global variable of the same name", expr->name.line, expr->name.col);
     }
 
@@ -153,7 +153,7 @@ ankh::lang::ExprResult ankh::lang::Resolver::visit(AccessExpression *expr)
     ANKH_DEBUG("resolving '{}'", expr->stringify());
     
     resolve(expr->accessible);
-    if (!scopes_.empty() && !is_defined(expr->accessor)) {
+    if (!scopes_.empty() && is_declared_but_not_defined(expr->accessor)) {
         panic<ParseException>("{}:{}, '{}' is not a member of '{}'", 
             expr->accessor.line, expr->accessor.col, expr->accessor.str, expr->accessible->stringify());
     }
@@ -207,7 +207,7 @@ void ankh::lang::Resolver::visit(CompoundAssignment* stmt)
     ANKH_DEBUG("resolving '{}'", stmt->stringify());
 
     resolve(stmt->value);
-    if (!scopes_.empty() && !is_defined(stmt->target)) {
+    if (!scopes_.empty() && is_declared_but_not_defined(stmt->target)) {
         panic<ParseException>("{}:{}, '{}' is not defined", 
             stmt->target.line, stmt->target.col, stmt->target.str);
     }
@@ -221,7 +221,7 @@ void ankh::lang::Resolver::visit(ModifyStatement* stmt)
     resolve(stmt->value);
 
     resolve(stmt->object);
-    if (!scopes_.empty() && !is_defined(stmt->name)) {
+    if (!scopes_.empty() && is_declared_but_not_defined(stmt->name)) {
         panic<ParseException>("{}:{}, '{}' is not a member of '{}'", 
             stmt->name.line, stmt->name.col, stmt->name.str, stmt->object->stringify());
     }
@@ -235,7 +235,7 @@ void ankh::lang::Resolver::visit(CompoundModify* stmt)
     resolve(stmt->value);
 
     resolve(stmt->object);
-    if (!scopes_.empty() && !is_defined(stmt->name)) {
+    if (!scopes_.empty() && is_declared_but_not_defined(stmt->name)) {
         panic<ParseException>("{}:{}, '{}' is not a member of '{}'", 
             stmt->name.line, stmt->name.col, stmt->name.str, stmt->object->stringify());
     }
@@ -392,9 +392,9 @@ void ankh::lang::Resolver::define(const Token& name) noexcept
     top()[name.str] = true;
 }
 
-bool ankh::lang::Resolver::is_defined(const Token& name) noexcept
+bool ankh::lang::Resolver::is_declared_but_not_defined(const Token& name) const noexcept
 {
-    return top().count(name.str) > 0 && top()[name.str] == true;
+    return top().count(name.str) > 0 && top()[name.str] == false;
 }
 
 void ankh::lang::Resolver::begin_scope() noexcept
@@ -408,6 +408,11 @@ void ankh::lang::Resolver::end_scope() noexcept
 }
 
 ankh::lang::Resolver::Scope& ankh::lang::Resolver::top() noexcept
+{
+    return scopes_.back();
+}
+
+const ankh::lang::Resolver::Scope& ankh::lang::Resolver::top() const noexcept
 {
     return scopes_.back();
 }

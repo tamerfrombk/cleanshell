@@ -66,12 +66,13 @@ private:
 
     void declare(const Token& name) noexcept;
     void define(const Token& name) noexcept;
-    bool is_defined(const Token& name) noexcept;
+    bool is_declared_but_not_defined(const Token& name) const noexcept;
 
     void begin_scope() noexcept;
     void end_scope() noexcept;
 
     Scope& top() noexcept;
+    const Scope& top() const noexcept;
 };
 
 }
