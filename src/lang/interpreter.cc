@@ -739,6 +739,7 @@ void ankh::lang::Interpreter::visit(ankh::lang::FunctionDeclaration *stmt)
         ::panic("function '{}' is already declared", name);
     }
 
+    // HERE: clone() causes all subtrees to have a different address making resolution lookup fail
     CallablePtr callable = make_callable<Function<ExprResult, Interpreter>>(this, stmt->clone(), global_);
 
     ExprResult result { callable.get() };
