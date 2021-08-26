@@ -228,6 +228,7 @@ void ankh::lang::Interpreter::interpret(const Program& program)
 {
     resolution_table_ = program.table;
 #ifndef NDEBUG
+    ANKH_DEBUG("========== SIDE TABLE ================");
     for (const auto& [k, v] : resolution_table_.hops) {
         // TODO: this is very ugly. Can we make it look cleaner?
         std::string serialized = reinterpret_cast<const Expression*>(k)
@@ -238,6 +239,7 @@ void ankh::lang::Interpreter::interpret(const Program& program)
 
         ANKH_DEBUG("'{}' @ {}, hops: {}", serialized, k, v);
     }
+    ANKH_DEBUG("========== END SIDE TABLE =============");
 #endif
 
     for (const auto& stmt : program.statements) {

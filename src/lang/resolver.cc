@@ -13,6 +13,21 @@ ankh::lang::ResolutionTable ankh::lang::Resolver::resolve(const Program& program
         stmt->accept(this);
     }
 
+    #ifndef NDEBUG
+    ANKH_DEBUG("========== RESOLVER() SIDE TABLE ================");
+    for (const auto& [k, v] : table_.hops) {
+        // TODO: this is very ugly. Can we make it look cleaner?
+        std::string serialized = reinterpret_cast<const Expression*>(k)
+            ? static_cast<const Expression*>(k)->stringify()
+            : reinterpret_cast<const Statement*>(k)
+            ? static_cast<const Statement*>(k)->stringify()
+            : "";
+
+        ANKH_DEBUG("'{}' @ {}, hops: {}", serialized, k, v);
+    }
+    ANKH_DEBUG("========== END RESOLVER() SIDE TABLE =============");
+#endif
+
     return table_;
 }
 
